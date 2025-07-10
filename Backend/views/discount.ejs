@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/discount.css">
+</head>
+
+<body>
+    <div style="padding: 20px; text-align: center;">
+        <h1 style="color: #333333;">PRODUCT MANAGER</h1>
+        <button class="custom-btn" onclick="toggleAddForm()">Add Product</button>
+
+        <div id="add-form" class="add-form-container" style="display: none;">
+            <div class="add-form">
+                <h2>Product Information</h2>
+                <form action="/api/products" method="POST">
+                    <label>Title:</label>
+                    <input type="text" name="title" required>
+
+                    <label>Description:</label>
+                    <textarea name="description" required></textarea>
+
+                    <label>Category:</label>
+                    <input type="text" name="category" required>
+
+                    <label>Price:</label>
+                    <input type="number" name="price" step="0.01" required>
+
+                    <label>Image URL:</label>
+                    <input type="text" name="image" required>
+
+                    <label>Discount %:</label>
+                    <input type="number" name="discount" min="0" max="100" value="0">
+
+                    <div class="form-actions">
+                        <button type="button" class="cancel-btn" onclick="toggleAddForm()">Cancel</button>
+                        <button type="submit" class="custom-btn">Save Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="discount-container">
+        <% products.forEach(product => { %>
+            <div class="product-row">
+                <img src="<%= product.image %>" alt="Product Image" class="product-image">
+
+                <div class="product-details">
+                    <h3 class="product-title">
+                        <%= convertToUppercase(product.title) %>
+                    </h3>
+                    <% if (showDiscount(product.discount) > 0) { %>
+                        <p class="product-discount">Discount: <%= product.discount %>%</p>
+                        <p class="product-price">
+                            <s><%= product.price %></s>
+                            <strong>
+                                <%= calculateNewPrice(product.price, product.discount) %> EGP
+                            </strong>
+                          <p  class="discount-amount">  You Saved : <%= getDiscountAmount(product.price, product.discount) %> EGP !!!</p>
+                          
+                              
+                        </p>
+                    <% } else { %>
+                        <p class="product-price"><%= product.price %> EGP</p>
+                    <% } %>
+
+                    <div class="discount-input">
+                        <form action="/api/discount" method="post">
+                            <input type="hidden" value="<%= product._id %>" name="id">
+                            <input type="number" placeholder="Discount %" min="0" max="100" name="discount">
+                            <button class="apply-btn" type="submit">Apply</button>
+                        </form>
+                        <form action="/api/discount" method="post">
+                            <input type="hidden" value="<%= product._id %>" name="id">
+                            <button class="remove-btn" type="submit">Remove</button>
+                        </form>
+                        <form action="/api/products/<%= product._id %>?_method=DELETE" method="POST">
+                            <button class="remove-btn" type="submit">Delete</button>
+                        </form>
+                        <button class="apply-btn" onclick="toggleEditForm('<%= product._id %>')">Edit</button>
+                    </div>
+
+                    <!-- Edit Form Inside product-details -->
+                    <form id="edit-form-<%= product._id %>" action="/api/products/<%= product._id %>?_method=PUT" method="POST" class="edit-form">
+                        <div>
+                            <input type="text" name="title" value="<%= product.title %>" required placeholder="Title">
+                        </div>
+                        <div>
+                            <textarea name="description" required placeholder="Description"><%= product.description %></textarea>
+                        </div>
+                        <div>
+                            <input type="text" name="category" value="<%= product.category %>" required placeholder="Category">
+                        </div>
+                        <div>
+                            <input type="number" name="price" value="<%= product.price %>" step="0.01" required placeholder="Price">
+                        </div>
+                        <div>
+                            <input type="text" name="image" value="<%= product.image %>" required placeholder="Image URL">
+                        </div>
+                        <div>
+                            <input type="number" name="discount" value="<%= product.discount %>" min="0" max="100" required placeholder="Discount %">
+                        </div>
+                        <div>
+                            <button type="submit" class="save-btn">Save</button>
+                            <button type="button" class="cancel-btn" onclick="toggleEditForm('<%= product._id %>')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        <% }); %>
+    </div>
+
+    <script>
+        function toggleAddForm() {
+            const form = document.getElementById('add-form');
+            form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+        }
+
+        function toggleEditForm(productId) {
+            const form = document.getElementById(`edit-form-${productId}`);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+</body>
+
+</html>
